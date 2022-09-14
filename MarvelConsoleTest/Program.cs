@@ -5,10 +5,9 @@ using System.Reflection.Metadata;
 DataAccess db = new("MarvelLegendary");
 Random rand = new();
 GameInfo gameInfo = new();
-List<string> includedSets = new() { Atts.Core, Atts.DarkCity, Atts.FantFour };
+List<string> includedSets = new();
 
 //  Enter new set info to Database
-
 List<string> CollectionList = db.ListCollections();
 
 if (!CollectionList.Contains(Atts.Core))
@@ -27,10 +26,31 @@ if (!CollectionList.Contains(Atts.FantFour))
     fantFourSet.EnterSetDataToDb(db);
 }
 
+Dictionary<string, string> setList = new Dictionary<string, string>()
+        {
+            {"1", Atts.Core },
+            {"2", Atts.DarkCity },
+            {"3", Atts.FantFour }
+        };
 
 List<BaseCardModel> heroes = new(), henchmen = new(), villains = new();
+List<BaseCardModel> bHeroes = new(), bHenchmen = new(), bVillains = new();
 List<MastermindModel> masterminds = new();
+List<MastermindModel> bMasterminds = new();
 List<SchemeModel> schemes = new();
+List<SchemeModel> bSchemes = new();
+
+Console.WriteLine("Please enter the numbers corespnding to the sets you would like to use, separated by commas.");
+Console.WriteLine("The entry can be left blank for only Core Set cards.");
+Console.WriteLine("(Ex: 1,3 to represent only the Core Set and Fantastic Four expansion.)");
+Console.WriteLine();
+Console.Write("Including Sets: ");
+string[] chosenSets = Console.ReadLine().Split(',');
+
+includedSets = GetSetList(chosenSets);
+
+if (includedSets.Count() == 0)
+    includedSets.Add(Atts.Core);
 
 //Get all data from local database for each used set
 foreach (string set in includedSets)
@@ -41,6 +61,13 @@ foreach (string set in includedSets)
     masterminds.AddRange(db.ReadByType<MastermindModel>(set, Atts.Mastermind));
     schemes.AddRange(db.ReadByType<SchemeModel>(set, Atts.Scheme));
 }
+
+//Get Core Set data as backup if not included by user
+bHeroes.AddRange(db.ReadByType<BaseCardModel>(Atts.Core, Atts.Hero));
+bHenchmen.AddRange(db.ReadByType<BaseCardModel>(Atts.Core, Atts.Henchman));
+bVillains.AddRange(db.ReadByType<BaseCardModel>(Atts.Core, Atts.Villain));
+bMasterminds.AddRange(db.ReadByType<MastermindModel>(Atts.Core, Atts.Mastermind));
+bSchemes.AddRange(db.ReadByType<SchemeModel>(Atts.Core, Atts.Scheme));
 
 Console.Write("Enter the number of players (1-5): ");
 int players = Convert.ToInt32(Console.ReadLine());
@@ -65,6 +92,9 @@ List<string> requiredClasses = new();
 //Get and implement Scheme rules
 
 Console.Write("Scheme: ");
+if (schemes.Count() == 0)
+    schemes.AddRange(bSchemes);
+
 SchemeModel sessionScheme = schemes[rand.Next(schemes.Count())];
 while(players == 1 && sessionScheme.CardInfo.Name == "Super Hero Civil War" || players == 1 && sessionScheme.CardInfo.Name == "Negative Zone Prison Breakout")
 {
@@ -128,6 +158,9 @@ while (sessionScheme.HeroesAsVillains > 0)
 //Get and implement Mastermind data
 
 Console.Write("Mastermind: ");
+if (masterminds.Count() == 0)
+    masterminds.AddRange(bMasterminds);
+
 while (sessionMasterminds.Count() < sessionData.MastermindCount)
 {
     MastermindModel m = masterminds[rand.Next(masterminds.Count())];
@@ -157,6 +190,8 @@ Console.WriteLine();
 
 while (sessionVillains.Count() < sessionData.VillainCount)
 {
+    if (villains.Count() == 0)
+        villains.AddRange(bVillains);
     AddUnitToSessionData(villains[rand.Next(villains.Count())]);
 }
 foreach (var v in sessionVillains)
@@ -168,6 +203,8 @@ Console.WriteLine();
 Console.WriteLine("Henchmen:");
 while (sessionHenchmen.Count() < sessionData.HenchmanCount)
 {
+    if (henchmen.Count() == 0)
+        henchmen.AddRange(bHenchmen);
     AddUnitToSessionData(henchmen[rand.Next(henchmen.Count())]);
 }
 foreach (var h in sessionHenchmen)
@@ -204,6 +241,8 @@ while (requiredTeams.Count > 0 || requiredClasses.Count() > 0)
 
 while (sessionHeroes.Count() < sessionData.HeroCount)
 {
+    if (heroes.Count() == 0)
+        heroes.AddRange(bHeroes);
     AddUnitToSessionData(heroes[rand.Next(heroes.Count())]);
 }
 foreach (var h in sessionHeroes)
@@ -220,9 +259,17 @@ Console.ReadLine();
 
 void AddUnitToSessionData(BaseCardModel c)
 {
+    bool bHero = false;
     if (c.Classification == Atts.Hero)
     {
         BaseCardModel hero = heroes.Find(x => x.Name == c.Name);
+        
+        if (hero == null)
+            bHero = true;
+
+        if (bHero)
+            hero = bHeroes.Find(x => x.Name == c.Name);
+
         sessionHeroes.Add(hero);
 
         if (hero.Teams != null)
@@ -240,7 +287,14 @@ void AddUnitToSessionData(BaseCardModel c)
             }
         }
 
-        heroes.Remove(hero);
+        if (!bHero)
+        {
+            heroes.Remove(hero);
+        }
+        else
+        {
+            bHeroes.Remove(hero);
+        }
     }
     if (c.Classification == Atts.Henchman)
     {
@@ -300,11 +354,36 @@ void AddUnitByAttToSessionData(string att)
     {
         heroList.AddRange(db.ReadByAttribute<BaseCardModel>(set, att));
     }
+
     for (int i = heroList.Count - 1; i >= 0; i--)
     {
         if (heroList[i].Classification != Atts.Hero)
             heroList.RemoveAt(i);
     }
 
+    if (heroList.Count() == 0)
+    {
+        heroList.AddRange(db.ReadByAttribute<BaseCardModel>(Atts.Core, att));
+        for (int i = heroList.Count - 1; i >= 0; i--)
+        {
+            if (heroList[i].Classification != Atts.Hero)
+                heroList.RemoveAt(i);
+        }
+    }
+
     AddUnitToSessionData(heroList[rand.Next(heroList.Count())]);
 }
+
+List<string> GetSetList(string[] keys)
+{
+    List<string> sets = new List<string>();
+    foreach (string key in keys)
+    {
+        if (setList.ContainsKey(key) && !sets.Contains(setList[key]))
+        {
+            sets.Add(setList[key]);
+        }
+    }
+    return sets;
+}
+

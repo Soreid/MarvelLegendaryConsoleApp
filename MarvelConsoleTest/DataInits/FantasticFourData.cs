@@ -34,10 +34,13 @@ namespace MarvelConsoleTest.DataInits
         {
             new() { CardInfo=new BaseCardModel() { Name="Bathe Earth in Cosmic Rays", Classification=Atts.Scheme },
                     GameInfo=new GameInfoModel() { TwistCount=6 } },
+
             new() { CardInfo=new BaseCardModel() { Name="Flood the Planet with Melted Glaciers", Classification=Atts.Scheme },
                     GameInfo=new GameInfoModel() { TwistCount=8 } },
+
             new() { CardInfo=new BaseCardModel() { Name="Invisible Force Field", Classification=Atts.Scheme },
                     GameInfo=new GameInfoModel() { TwistCount=7 } },
+
             new() { CardInfo=new BaseCardModel() { Name="Pull Reality into the Negative Zone", Classification=Atts.Scheme },
                     GameInfo=new GameInfoModel() { TwistCount=8 } }
         };

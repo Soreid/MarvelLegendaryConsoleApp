@@ -18,9 +18,9 @@ These cards can be through the same hero (such as Rogue) or different heroes (su
 The program currently includes information for the core game plus the following expansions:
 + Dark City
 + Fantastic Four
++ Paint the Town Red
 
 Updates to be included at a future date:
-+ Ability to include or exclude specific expansion sets
 + Full list of expansions
 
 Reference for the card details was taken from https://marveldbg.wordpress.com/.

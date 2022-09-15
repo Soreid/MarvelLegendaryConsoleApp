@@ -16,9 +16,10 @@ namespace MarvelConsoleTest.Models
         public const string Scheme = "Scheme";
 
         //Expansion Standardization
-        public const string Core = "CoreSet";
-        public const string DarkCity = "DarkCity";
-        public const string FantFour = "FantasticFour";
+        public const string Core = "Core Set";
+        public const string DarkCity = "Dark City";
+        public const string FantFour = "Fantastic Four";
+        public const string PaintRed = "Paint the Town Red";
 
         //Hero Class Standardization
         public const string Strength = "Strength";

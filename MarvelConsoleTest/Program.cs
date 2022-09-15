@@ -1,5 +1,6 @@
 ﻿using MarvelConsoleTest.DataInits;
 using MarvelConsoleTest.Processes;
+using MarvelLegendaryConsoleApp.DataInits;
 using System.Reflection.Metadata;
 
 DataAccess db = new("MarvelLegendary");
@@ -25,13 +26,20 @@ if (!CollectionList.Contains(Atts.FantFour))
     FantasticFourData fantFourSet = new FantasticFourData();
     fantFourSet.EnterSetDataToDb(db);
 }
+if (!CollectionList.Contains(Atts.PaintRed))
+{
+    PaintRedData paintRedSet = new PaintRedData();
+    paintRedSet.EnterSetDataToDb(db);
+}
+
 
 Dictionary<string, string> setList = new Dictionary<string, string>()
-        {
-            {"1", Atts.Core },
-            {"2", Atts.DarkCity },
-            {"3", Atts.FantFour }
-        };
+{
+    {"1", Atts.Core },
+    {"2", Atts.DarkCity },
+    {"3", Atts.FantFour },
+    {"4", Atts.PaintRed }
+};
 
 List<BaseCardModel> heroes = new(), henchmen = new(), villains = new();
 List<BaseCardModel> bHeroes = new(), bHenchmen = new(), bVillains = new();
@@ -44,6 +52,14 @@ Console.WriteLine("Please enter the numbers corespnding to the sets you would li
 Console.WriteLine("The entry can be left blank for only Core Set cards.");
 Console.WriteLine("(Ex: 1,3 to represent only the Core Set and Fantastic Four expansion.)");
 Console.WriteLine();
+
+foreach (KeyValuePair<string, string> entry in setList)
+{
+    Console.Write(entry.Key + ": ");
+    Console.WriteLine(entry.Value);
+}
+Console.WriteLine();
+
 Console.Write("Including Sets: ");
 string[] chosenSets = Console.ReadLine().Split(',');
 
@@ -298,23 +314,39 @@ void AddUnitToSessionData(BaseCardModel c)
     }
     if (c.Classification == Atts.Henchman)
     {
-        BaseCardModel henchman = henchmen.Find(x => x.Name == c.Name);
-        sessionHenchmen.Add(henchman);
-        if (henchman.Teams != null)
-            requiredTeams.AddRange(henchman.Teams);
-        if (henchman.Classes != null)
-            requiredClasses.AddRange(henchman.Classes);
-        henchmen.Remove(henchman);
+        List<Guid> ids = new();
+        foreach (BaseCardModel henchman in sessionHenchmen)
+        {
+            ids.Add(henchman.Id);
+        }
+        if (!ids.Contains(c.Id))
+        {
+            BaseCardModel henchman = henchmen.Find(x => x.Name == c.Name);
+            sessionHenchmen.Add(henchman);
+            if (henchman.Teams != null)
+                requiredTeams.AddRange(henchman.Teams);
+            if (henchman.Classes != null)
+                requiredClasses.AddRange(henchman.Classes);
+            henchmen.Remove(henchman);
+        }
     }
     if (c.Classification == Atts.Villain)
     {
-        BaseCardModel villain = villains.Find(x => x.Name == c.Name);
-        sessionVillains.Add(villain);
-        if (villain.Teams != null)
-            requiredTeams.AddRange(villain.Teams);
-        if (villain.Classes != null)
-            requiredClasses.AddRange(villain.Classes);
-        villains.Remove(villain);
+        List<Guid> ids = new();
+        foreach(BaseCardModel villain in sessionVillains)
+        {
+            ids.Add(villain.Id);
+        }
+        if (!ids.Contains(c.Id))
+        {
+            BaseCardModel villain = villains.Find(x => x.Name == c.Name);
+            sessionVillains.Add(villain);
+            if (villain.Teams != null)
+                requiredTeams.AddRange(villain.Teams);
+            if (villain.Classes != null)
+                requiredClasses.AddRange(villain.Classes);
+            villains.Remove(villain);
+        }
     }
 }
 
